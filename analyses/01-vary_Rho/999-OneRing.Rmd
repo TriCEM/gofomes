@@ -1,0 +1,51 @@
+---
+title: "Rd1: Looking at Varying Rho"
+author: "TBD"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  html_document:
+    highlight: textmate
+    theme: lumen
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = T, warning = F, message = F, eval = T, results = 'hide',
+                      fig.align = 'center', fig.width = 6, fig.height = 6)
+knitr::opts_knit$set(root.dir = here::here(""))
+```
+```{r}
+library(tidyverse)
+# remotes::install_github("TriCEM/fomes", ref = "develop")
+library(fomes)
+```
+
+
+# Overview
+This script can be used to knit to html and share with group collaborators
+
+```{r}
+maestro_model_results <- readRDS(paste0(here::here(), "/analyses/01-vary_rho_NC/simresults/model_results_from_maestro.RDS"))
+
+
+```
+
+## Visualzing Results 
+
+
+```{r}
+maestro_model_results %>% 
+  ggplot() + 
+  geom_boxplot(aes(x = modtype, y = EpidemicFinalSize),
+               outlier.colour = "red", outlier.shape=8,
+               outlier.size=4) +
+  ylab("Final Epidemic Size") +
+  theme_linedraw() +
+  theme(axis.title.x = element_blank(),
+        axis.ticks.x = element_blank())
+```
