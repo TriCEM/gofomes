@@ -7,6 +7,7 @@
 ##
 ## Notes:
 ## .................................................................................
+#remotes::install_github("TriCEM/fomes", ref = "develop")
 library(fomes)
 library(tidyverse)
 library(cowplot)
@@ -17,8 +18,9 @@ library(cowplot)
 popsize <- 100
 duration_of_I <- 5
 initial_infxns <- 1
-betaind <- 0.02
-initNCval <- 50
+initNCval <- 99
+betaind <- 5
+rhoconn <- 50
 
 # storage
 niters <- 100
@@ -37,30 +39,30 @@ for (i in 1:niters) {
   #......................
   NEdynSIR <- fomes::sim_Gillespie_SIR(Iseed = initial_infxns,
                                        N = popsize,
-                                       beta = matrix(betaind, popsize, popsize),
+                                       beta = rep(betaind, popsize),
                                        dur_I = duration_of_I,
-                                       rho = 1,
+                                       rho = rhoconn,
                                        initNC = initNCval,
                                        term_time = Inf)
 
-  tidyNEdynSIR <- fomes::tidy_sim_Gillespie_SIR(NEdynSIR)
+  tidyNEdynSIR <- summary(NEdynSIR)
   # storage
-  combouts[i, "NEfinalsize"] <- tidyNEdynSIR[nrow(tidyNEdynSIR), "numInfxn"] + tidyNEdynSIR[nrow(tidyNEdynSIR), "numRecov"]
-  combouts[i, "NEfinaltime"] <- tidyNEdynSIR[nrow(tidyNEdynSIR), "time"]
+  combouts[i, "NEfinalsize"] <- tidyNEdynSIR$FinalEpidemicSize
+  combouts[i, "NEfinaltime"] <- max(tidyNEdynSIR$CumEvents$Time)
 
 
   #......................
   # traditional model
   #......................
-  tradSIR <- fomes::tradsim_Gillespie_SIR(Iseed = initial_infxns,
+  tradSIR <- fomes:::tradsim_Gillespie_SIR(Iseed = initial_infxns,
                                           N = popsize,
                                           beta = betaind,
                                           dur_I = duration_of_I,
                                           term_time = Inf)
 
   # storage
-  combouts[i, "TDfinalsize"] <- tradSIR[nrow(tradSIR), "numInfxn"] + tradSIR[nrow(tradSIR), "numRecov"]
-  combouts[i, "TDfinaltime"] <- tradSIR[nrow(tradSIR), "time"]
+  combouts[i, "TDfinalsize"] <- sum(tradSIR[1,c("Susc", "Infxn")]) - tradSIR[nrow(tradSIR), "Susc"]
+  combouts[i, "TDfinaltime"] <- tradSIR[nrow(tradSIR), "Time"]
 
 }
 
@@ -104,6 +106,8 @@ p2 <- combouts %>%
 
 # combine
 plotout <- cowplot::plot_grid(p1, p2, nrow = 2)
+
+
 jpeg("~/Desktop/temp_dynamic_ma_vs_trad.jpg",
      height = 6, width = 12,
      res = 500, units = "in")
