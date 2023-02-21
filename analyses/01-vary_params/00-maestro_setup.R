@@ -1,7 +1,7 @@
 ## .................................................................................
 ## Purpose: Maestro Document for setting up analysis of how Rho and NC affect approx of Mass Action
 ##
-## Author: TBD
+## Author: Nick Brazeau
 ##
 ## Date: 30 January, 2023
 ##
@@ -14,7 +14,7 @@ library(tidyverse)
 # magic number set up
 #...........................................................
 Iseednow <- 1
-Nnow <- 1e3
+Nnow <- 1e4
 rhonow <- seq(1e-3, 10, length.out = 10)
 init_contact_matnow <- fomes:::genInitialConnections(initNC = 50,
                                                   N = Nnow)
@@ -55,4 +55,4 @@ maestro_map <- dplyr::bind_rows(maestro_map_NE, maestro_map_trad)
 # save out
 #...........................................................
 dir.create(paste0(here::here(), "/analyses/01-vary_rho_NC/simresults"))
-saveRDS(maestro_map, file = paste0(here::here(), "/analyses/01-vary_rho_NC/simresults/maestro.RDS"))
+saveRDS(maestro_map, file = paste0(here::here(), "/analyses/01-vary_rho_NC/results/maestro.RDS"))
