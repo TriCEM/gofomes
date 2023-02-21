@@ -1,5 +1,5 @@
 ---
-title: "Rd1: Looking at Varying Rho"
+title: "Analyzing the Effects of Epidemic Parameters on Final Size Distributions"
 author: "TBD"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: 
