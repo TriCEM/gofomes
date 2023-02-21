@@ -1,58 +1,85 @@
 ## .................................................................................
-## Purpose: Maestro Document for setting up analysis of how Rho and NC affect approx of Mass Action
+## Purpose: Setup for Varying Parameters to Determine Effect on Final Distribution Size
 ##
 ## Author: Nick Brazeau
 ##
 ## Date: 30 January, 2023
 ##
-## Notes:
+## Notes: Using a dataframe ("maestro") to hold model parameters as input. Will then map
+##        through dataframe and to fit various models following the format of R for Data Science
+##        framework: https://r4ds.had.co.nz/many-models.html
+##
+##        Given that we want to fit many models, will use the UNC Cluster Longleaf as a workhorse
 ## .................................................................................
 library(tidyverse)
 
+#............................................................
+# Constant Numbers for Simulations
+#...........................................................
+Iseednow <- 1 # initial infection
+Nnow <- 1e3 # population size
 
 #............................................................
-# magic number set up
+# Parameters to Vary
 #...........................................................
-Iseednow <- 1
-Nnow <- 1e4
-rhonow <- seq(1e-3, 10, length.out = 10)
-init_contact_matnow <- fomes:::genInitialConnections(initNC = 50,
-                                                  N = Nnow)
-# beta <- seq(1, 15, length.out = 10)
-betanow <- 5
-duration_of_Inow <- 5
+init_connectionsnow <- c(5, seq(50, 500, by = 50))
+rhonow <- seq(-5, 5, length.out = 11)
+rhonow <- sapply(rhonow, function(x){10^x})
+betanow <- seq(0.05, 1, length.out = 10)
+duration_of_Inow <- c(1, seq(5, 25, by = 5))
 
-#......................
-# bring this together in a tibble
-#......................
+
+
+#............................................................
+# Maestro: Bringing this all together
+#...........................................................
 maestro_map <- tibble::as_tibble(
   expand.grid(Iseed = Iseednow,
               N = Nnow,
               rho = rhonow,
-              init_contact_mat = init_contact_matnow,
+              initNC = init_connectionsnow,
               beta = betanow,
               dur_I = duration_of_Inow)
 )
 
+# add modnames
+modnames <- sapply(1:nrow(maestro_map), function(x){paste("NEmod", x, sep = "")})
+maestro_map <- maestro_map %>%
+  dplyr::mutate(name = modnames) %>%
+  dplyr::select(c("name", dplyr::everything()))
+
+#............................................................
+# Mass Action Model to Compare
+#...........................................................
+massaction <- tibble::as_tibble(expand.grid(Iseed = Iseednow,
+            N = Nnow,
+            rho = 10^-.Machine$double.xmax,
+            initNC = 999,
+            beta = betanow,
+            dur_I = duration_of_Inow))
+
+# add modnames
+modnames <- sapply(1:nrow(massaction), function(x){paste("MAmod", x, sep = "")})
+massaction <- massaction %>%
+  dplyr::mutate(name = modnames) %>%
+  dplyr::select(c("name", dplyr::everything()))
+
+#............................................................
+# finalize
+#...........................................................
+# bring together
+maestro_map_final <- dplyr::bind_rows(maestro_map, massaction)
+
+
 #......................
 # now add in reps
 #......................
-reps <- 10
-maestro_map <- dplyr::bind_rows(replicate(reps, maestro_map, simplify = F))
-
-#......................
-# now add in NE vs trad
-#......................
-maestro_map_NE <- maestro_map %>%
-  dplyr::mutate(modtype = "NE")
-maestro_map_trad <- maestro_map %>%
-  dplyr::mutate(modtype = "trad")
-# bring together
-maestro_map <- dplyr::bind_rows(maestro_map_NE, maestro_map_trad)
+reps <- 1e2
+maestro_map_final <- dplyr::bind_rows(replicate(reps, maestro_map_final, simplify = F))
 
 
 #............................................................
 # save out
 #...........................................................
-dir.create(paste0(here::here(), "/analyses/01-vary_rho_NC/simresults"))
-saveRDS(maestro_map, file = paste0(here::here(), "/analyses/01-vary_rho_NC/results/maestro.RDS"))
+dir.create(paste0(here::here(), "/analyses/01-vary_params/results"))
+saveRDS(maestro_map_final, file = paste0(here::here(), "/analyses/01-vary_params/results/maestro_params.RDS"))

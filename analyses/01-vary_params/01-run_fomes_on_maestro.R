@@ -1,5 +1,5 @@
 ## .................................................................................
-## Purpose: Running NE fomes and Traditional model on Maestro
+## Purpose: Running `fomes` on varying parameter map
 ##
 ## Author: Nick Brazeau
 ##
@@ -15,64 +15,48 @@ library(furrr)
 #............................................................
 # read in data
 #...........................................................
-maestro_map <- readRDS(paste0(here::here(), "/analyses/01-vary_rho_NC/simresults/maestro.RDS"))
+maestro_map <- readRDS(paste0(here::here(), "/analyses/01-vary_params/results/maestro_params.RDS"))
 
 
 #............................................................
 # functions
 #...........................................................
-fomes_wrapper <- function(Iseed, N, beta, dur_I,
-                          rho, init_contact_mat, modtype) {
+# personal scratch space
+myscratchspace <- "/pine/scr/n/f/nfb/Projects/gofomes/01-vary_params_simresults/"
+fomes_wrapper <- function(name, Iseed, N, beta, dur_I,
+                          rho, initNC, modtype) {
 
-  if (modtype == "NE") {
     modout <- fomes::sim_Gillespie_SIR(Iseed = Iseed,
                                        N = N,
                                        beta = rep(beta, N),
                                        dur_I = dur_I,
                                        rho = rho,
-                                       init_contact_mat = init_contact_mat,
+                                       initNC = initNC,
                                        term_time = Inf)
-  } else if (modtype == "trad") {
-    modout <- fomes:::tradsim_Gillespie_SIR(Iseed = Iseed,
-                                            N = N,
-                                            beta = beta,
-                                            dur_I = dur_I,
-                                            term_time = Inf)
-  } else {
-    stop("Your maestro must be of model type NE or Trad")
-  }
-  # out
-  return(modout)
+
+    # out of scope behavior
+    fn <- paste(myscratchspace, modout$name, ".RDS", sep = "")
+    saveRDS(modout, file = fn)
+
+    # return within scope
+    return(sum(modout$Event_traj == "transmission"))
+
 }
 
 
-finalsize_wrapper <- function(modresult, modtype) {
-  if (modtype == "NE") {
-    ret <- summary(modresult)$FinalEpidemicSize
-  } else if (modtype == "trad") {
-    ret <- sum(modresult[1,c("Susc", "Infxn")]) - modresult[nrow(modresult), "Susc"]
-  } else {
-    stop("Your maestro must be of model type NE or Trad")
-  }
-  return(ret)
-}
 
 #............................................................
-# run on maestro
+# run maestroe on LongLeaf
 #...........................................................
 maestro_map <- maestro_map %>%
-  dplyr::mutate(modresult = furrr::future_pmap(., fomes_wrapper,
-                                               .options = furrr_options(seed = TRUE)),
-                EpidemicFinalSize = purrr::map2_dbl(modresult, modtype, finalsize_wrapper)
-  )
-
-
+  dplyr::mutate(finalsize = furrr::future_pmap_dbl(., fomes_wrapper,
+                                               .options = furrr_options(seed = TRUE)))
 
 #............................................................
 # save out results
 #...........................................................
-dir.create(paste0(here::here(), "/analyses/01-vary_rho_NC/simresults"))
-saveRDS(maestro_map, file = paste0(here::here(), "/analyses/01-vary_rho_NC/simresults/model_results_from_maestro.RDS"))
+dir.create(paste0(here::here(), "/analyses/01-vary_params/results/"))
+saveRDS(maestro_map, file = paste0(here::here(), "/analyses/01-vary_params/results/simmodel_results_from_maestro.RDS"))
 
 
 

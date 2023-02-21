@@ -7,5 +7,5 @@
 #SBATCH --time=5-00:00:00
 #SBATCH --output=fomes_networks_%j.log
 
-R CMD BATCH analyses/_future_fomesSim.R
+R CMD BATCH 01-run_fomes_on_maestro.R
 

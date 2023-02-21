@@ -19,7 +19,7 @@ popsize <- 100
 duration_of_I <- 5
 initial_infxns <- 1
 initNCval <- 99
-betaind <- 5
+betaind <- 0.5
 rhoconn <- 50
 
 # storage
