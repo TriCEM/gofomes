@@ -23,6 +23,7 @@ maestro_map <- readRDS(paste0(here::here(), "/analyses/01-vary_params/results/ma
 #...........................................................
 # personal scratch space
 myscratchspace <- "/pine/scr/n/f/nfb/Projects/gofomes/01-vary_params_simresults/"
+dir.create(myscratchspace, recursive = TRUE)
 fomes_wrapper <- function(name, Iseed, N, beta, dur_I,
                           rho, init_contact_mat) {
 
@@ -49,6 +50,8 @@ fomes_wrapper <- function(name, Iseed, N, beta, dur_I,
 #............................................................
 # run maestroe on LongLeaf
 #...........................................................
+#availableCores()
+plan(future.batchtools::batchtools_slurm, workers = 124)
 maestro_map <- maestro_map %>%
   dplyr::mutate(finalsize = furrr::future_pmap_dbl(., fomes_wrapper,
                                                .options = furrr_options(seed = TRUE)))

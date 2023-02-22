@@ -60,6 +60,11 @@ maestro_map <- maestro_map %>%
   dplyr::left_join(., init_connectionsnow, by = "contnames") %>%
   dplyr::select(-c("contnames"))
 
+# now add in reps
+reps <- 1e2
+maestro_map <- dplyr::bind_rows(replicate(reps, maestro_map, simplify = F))
+
+
 # add modnames
 modnames <- sapply(1:nrow(maestro_map), function(x){paste("NEmod", x, sep = "")})
 maestro_map <- maestro_map %>%
@@ -80,6 +85,10 @@ massaction <- tibble::as_tibble(expand.grid(Iseed = Iseednow,
                                             beta = betanow,
                                             dur_I = duration_of_Inow))
 
+# now add in reps
+reps <- 1e2
+massaction <- dplyr::bind_rows(replicate(reps, massaction, simplify = F))
+
 # add modnames
 modnames <- sapply(1:nrow(massaction), function(x){paste("MAmod", x, sep = "")})
 massaction <- massaction %>%
@@ -92,12 +101,6 @@ massaction <- massaction %>%
 # bring together
 maestro_map_final <- dplyr::bind_rows(maestro_map, massaction)
 
-
-#......................
-# now add in reps
-#......................
-reps <- 1e2
-maestro_map_final <- dplyr::bind_rows(replicate(reps, maestro_map_final, simplify = F))
 
 
 #............................................................
