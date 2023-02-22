@@ -12,21 +12,32 @@
 ##        Given that we want to fit many models, will use the UNC Cluster Longleaf as a workhorse
 ## .................................................................................
 library(tidyverse)
-
+library(fomes)
+set.seed(48)
 #............................................................
 # Constant Numbers for Simulations
 #...........................................................
 Iseednow <- 1 # initial infection
-Nnow <- 1e3 # population size
+Nnow <- 1e2 # population size
 betanow <- 0.5
 duration_of_Inow <- 10
 
 #............................................................
 # Parameters to Vary
 #...........................................................
-init_connectionsnow <- c(5, seq(50, 500, by = 25))
+# init contact matrices
+init_connectionsnow <- lapply(seq(5, 50, by = 5), function(x){
+  return(fomes::genInitialConnections(initNC = x, N = Nnow))
+})
+# need to tidy this for better join
+init_connectionsnow <- tibble::tibble(contnames = paste("cm", 1:length(init_connectionsnow), sep = ""),
+                                      init_contact_mat = init_connectionsnow)
+
+# rewiring
 rhonow <- seq(-5, 5, length.out = 11)
 rhonow <- sapply(rhonow, function(x){10^x})
+
+# SIR Rate Params
 #betanow <- seq(0.05, 1, length.out = 10)
 #duration_of_Inow <- c(1, seq(5, 25, by = 5))
 
@@ -39,10 +50,15 @@ maestro_map <- tibble::as_tibble(
   expand.grid(Iseed = Iseednow,
               N = Nnow,
               rho = rhonow,
-              initNC = init_connectionsnow,
+              contnames = init_connectionsnow$contnames,
               beta = betanow,
               dur_I = duration_of_Inow)
 )
+
+# join tidy
+maestro_map <- maestro_map %>%
+  dplyr::left_join(., init_connectionsnow, by = "contnames") %>%
+  dplyr::select(-c("contnames"))
 
 # add modnames
 modnames <- sapply(1:nrow(maestro_map), function(x){paste("NEmod", x, sep = "")})
@@ -53,12 +69,16 @@ maestro_map <- maestro_map %>%
 #............................................................
 # Mass Action Model to Compare
 #...........................................................
+# ma mat
+manow <- matrix(1, Nnow, Nnow)
+diag(manow) <- 0
+# combine
 massaction <- tibble::as_tibble(expand.grid(Iseed = Iseednow,
-            N = Nnow,
-            rho = 10^-.Machine$double.xmax,
-            initNC = 999,
-            beta = betanow,
-            dur_I = duration_of_Inow))
+                                            N = Nnow,
+                                            rho = 10^-.Machine$double.xmax,
+                                            init_contact_mat = list(manow),
+                                            beta = betanow,
+                                            dur_I = duration_of_Inow))
 
 # add modnames
 modnames <- sapply(1:nrow(massaction), function(x){paste("MAmod", x, sep = "")})

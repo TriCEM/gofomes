@@ -24,16 +24,16 @@ maestro_map <- readRDS(paste0(here::here(), "/analyses/01-vary_params/results/ma
 # personal scratch space
 myscratchspace <- "/pine/scr/n/f/nfb/Projects/gofomes/01-vary_params_simresults/"
 fomes_wrapper <- function(name, Iseed, N, beta, dur_I,
-                          rho, initNC, modtype) {
+                          rho, init_contact_mat) {
 
     modout <- fomes::sim_Gillespie_SIR(Iseed = Iseed,
                                        N = N,
                                        beta = rep(beta, N),
                                        dur_I = dur_I,
                                        rho = rho,
-                                       initNC = initNC,
+                                       init_contact_mat = init_contact_mat,
                                        term_time = Inf,
-                                       return_contact_matrices = TRUE)
+                                       return_contact_matrices = FALSE)
 
     # out of scope behavior
     fn <- paste(myscratchspace, name, ".RDS", sep = "")
