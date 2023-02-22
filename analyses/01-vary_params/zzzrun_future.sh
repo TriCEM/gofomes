@@ -2,7 +2,7 @@
 #SBATCH --job-name=fomes_sim_varyparams
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=nbrazeau@med.unc.edu
-#SBATCH --ntasks=128
+#SBATCH --ntasks=512
 #SBATCH --mem=128G
 #SBATCH --time=5-00:00:00
 #SBATCH --output=fomes_varyparams_%j.log

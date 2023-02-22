@@ -51,7 +51,7 @@ fomes_wrapper <- function(name, Iseed, N, beta, dur_I,
 # run maestroe on LongLeaf
 #...........................................................
 #availableCores()
-plan(future.batchtools::batchtools_slurm, workers = 124)
+plan(future.batchtools::batchtools_slurm, workers = (availableCores()-1))
 maestro_map <- maestro_map %>%
   dplyr::mutate(finalsize = furrr::future_pmap_dbl(., fomes_wrapper,
                                                .options = furrr_options(seed = TRUE)))
