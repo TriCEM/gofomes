@@ -18,15 +18,17 @@ library(tidyverse)
 #...........................................................
 Iseednow <- 1 # initial infection
 Nnow <- 1e3 # population size
+betanow <- 0.5
+duration_of_Inow <- 10
 
 #............................................................
 # Parameters to Vary
 #...........................................................
-init_connectionsnow <- c(5, seq(50, 500, by = 50))
+init_connectionsnow <- c(5, seq(50, 500, by = 25))
 rhonow <- seq(-5, 5, length.out = 11)
 rhonow <- sapply(rhonow, function(x){10^x})
-betanow <- seq(0.05, 1, length.out = 10)
-duration_of_Inow <- c(1, seq(5, 25, by = 5))
+#betanow <- seq(0.05, 1, length.out = 10)
+#duration_of_Inow <- c(1, seq(5, 25, by = 5))
 
 
 

@@ -32,10 +32,11 @@ fomes_wrapper <- function(name, Iseed, N, beta, dur_I,
                                        dur_I = dur_I,
                                        rho = rho,
                                        initNC = initNC,
-                                       term_time = Inf)
+                                       term_time = Inf,
+                                       return_contact_matrices = TRUE)
 
     # out of scope behavior
-    fn <- paste(myscratchspace, modout$name, ".RDS", sep = "")
+    fn <- paste(myscratchspace, name, ".RDS", sep = "")
     saveRDS(modout, file = fn)
 
     # return within scope
