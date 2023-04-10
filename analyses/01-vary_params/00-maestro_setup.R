@@ -21,16 +21,18 @@ Iseednow <- 1 # initial infection
 Nnow <- 1e2 # population size
 betanow <- 0.5
 duration_of_Inow <- 10
+initNCnow <- seq(5, 50, by = 5)
 
 #............................................................
 # Parameters to Vary
 #...........................................................
 # init contact matrices
-init_connectionsnow <- lapply(seq(5, 50, by = 5), function(x){
+init_connectionsnow <- lapply(initNCnow, function(x){
   return(fomes::genInitialConnections(initNC = x, N = Nnow))
 })
 # need to tidy this for better join
 init_connectionsnow <- tibble::tibble(contnames = paste("cm", 1:length(init_connectionsnow), sep = ""),
+                                      initNC = initNCnow,
                                       init_contact_mat = init_connectionsnow)
 
 # rewiring
@@ -57,8 +59,7 @@ maestro_map <- tibble::as_tibble(
 
 # join tidy
 maestro_map <- maestro_map %>%
-  dplyr::left_join(., init_connectionsnow, by = "contnames") %>%
-  dplyr::select(-c("contnames"))
+  dplyr::left_join(., init_connectionsnow, by = "contnames")
 
 # now add in reps
 reps <- 1e2
